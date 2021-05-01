@@ -1,0 +1,5 @@
+# General
+run_apt_update: true
+
+# SSH
+ssh_key_location: '~/.ssh/id_rsa.pub' # change if required

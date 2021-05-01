@@ -1,0 +1,4 @@
+# Git: DylanGore-FYP
+- name: configure_ssh
+  src: https://github.com/DylanGore-FYP/ansible-role-configure-ssh.git
+  version: v1.0.0

@@ -1,0 +1,17 @@
+- name: Configure SSH & Initial Setup
+  hosts: vehicle_hosts
+  become: true
+  vars_files:
+    - vars/vars.yml
+  roles:
+    # Add SSH keys for the current SSH user
+    - role: configure_ssh
+      ssh_key_user: '{{ ansible_ssh_user }}'
+      ssh_keys:
+        - '{{ ssh_key_location }}'
+  tasks:
+    - name: Update packages
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+      when: run_apt_update

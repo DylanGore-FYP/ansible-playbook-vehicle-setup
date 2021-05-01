@@ -1,0 +1,26 @@
+name: lint-playbook
+
+on:
+  push:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install/update pip
+        run: python3 -m pip install --upgrade pip
+      - name: Install ansible and ansible-lint
+        run: python3 -m pip install ansible ansible-lint
+      - name: Create a dummy vars.yml file
+        run: cp vars/vars.sample.yml vars/vars.yml
+      - name: Get Ansible Roles
+        run: ansible-galaxy install -r requirements.yml -p roles --force
+      - name: Run ansible-lint
+        run: ansible-lint . -x meta-no-info,risky-shell-pipe --exclude .github/
+      - name: Check playbook syntax
+        run: ansible-playbook -i inventory.example playbook.yml --syntax-check
