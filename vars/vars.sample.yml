@@ -1,5 +1,11 @@
 # General
+enable_file_check: true
 run_apt_update: true
+install_gps: true
+hide_cursor: true
+enable_single_click: true
+update_vehicle_code: true
+vehicle_code_version: main
 
 # SSH
 ssh_key_location: '~/.ssh/id_rsa.pub' # change if required

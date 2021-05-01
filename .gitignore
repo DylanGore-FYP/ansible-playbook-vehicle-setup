@@ -14,3 +14,5 @@ roles/*
 inventory
 
 vars.yml
+
+config.toml

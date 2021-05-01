@@ -12,6 +12,37 @@
 
 An Ansible Playbook that performs initial setup for the Raspberry Pi that will run the vehicle code.
 
+## Requirements
+
+- Python 3
+- Ansible
+- Git
+
+## Configuration
+
+1. Copy `vars/vars.yml` to `vars.yml` and edit the variables accordingly.
+2. Add a `config.toml` file to the templates directory based on the example from the [DylanGore-FYP/Car](https://github.com/DylanGore-FYP/Car/blob/main/config.sample.toml).
+
+## Running the Playbook
+
+Get the required roles from Ansible Galaxy:
+
+```bash
+ansible-galaxy install -r requirements.yml -p roles --force
+```
+
+Run the playbook using SSH Key authentication:
+
+```bash
+ansible-playbook -i inventory playbook.yml
+```
+
+Run the playbook using password authentication:
+
+```bash
+ansible-playbook -i inventory playbook.yml --ask-pass
+```
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->

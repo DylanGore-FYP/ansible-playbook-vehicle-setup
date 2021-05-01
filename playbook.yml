@@ -1,3 +1,20 @@
+# Fail if all the required confg files are not found
+- name: Check that the required config files are present
+  hosts: localhost
+  become: false
+  vars_files:
+    - vars/vars.yml
+  tasks:
+    - name: Check that the config.toml file exists on the host
+      ansible.builtin.stat:
+        path: ./templates/config.toml
+      register: file_result
+      when: enable_file_check
+    - name: Fail if ./templates/config.toml is missing
+      ansible.builtin.fail:
+        msg: Could not find ./templates/config.toml
+      when: not file_result.stat.exists and enable_file_check
+
 - name: Configure SSH & Initial Setup
   hosts: vehicle_hosts
   become: true
@@ -10,8 +27,112 @@
       ssh_keys:
         - '{{ ssh_key_location }}'
   tasks:
-    - name: Update packages
+    - name: Update apt cache
       ansible.builtin.apt:
         update_cache: true
+    - name: Upgrade packages
+      ansible.builtin.apt:
         upgrade: dist
       when: run_apt_update
+
+- name: Install dependencies
+  hosts: vehicle_hosts
+  become: true
+  vars_files:
+    - vars/vars.yml
+  roles:
+    - role: geerlingguy.pip
+      pip_install_packages:
+        - pipenv
+        - obd
+        - paho-mqtt
+        - toml
+        - gps
+        - eel
+  tasks:
+    - name: Install gpsd
+      ansible.builtin.apt:
+        pkg:
+          - gpsd
+          - gpsd-clients
+        state: latest
+      when: install_gps
+
+- name: Hide the cursor / Enable single click
+  hosts: vehicle_hosts
+  become: true
+  vars_files:
+    - vars/vars.yml
+  tasks:
+    - name: Install unclutter
+      ansible.builtin.apt:
+        name: unclutter
+        state: latest
+      when: hide_cursor
+    # Hide the cursor
+    - name: Add unclutter to the LXDE autostart file
+      ansible.builtin.lineinfile:
+        path: /etc/xdg/lxsession/LXDE-pi/autostart
+        line: '@unclutter -idle 0'
+        state: present
+      when: hide_cursor
+    # Show the cursor
+    - name: Remove unclutter from the LXDE autostart file
+      ansible.builtin.lineinfile:
+        path: /etc/xdg/lxsession/LXDE-pi/autostart
+        line: '@unclutter -idle 0'
+        state: absent
+      when: not hide_cursor
+    # Enable single click instead of double click on desktop
+    - name: Add unclutter to the LXDE autostart file
+      ansible.builtin.lineinfile:
+        path: /etc/xdg/libfm/libfm.conf
+        regexp: '^single_click=0'
+        line: 'single_click=1'
+      when: enable_single_click
+    # Disable single click
+    - name: Add unclutter to the LXDE autostart file
+      ansible.builtin.lineinfile:
+        path: /etc/xdg/libfm/libfm.conf
+        regexp: '^single_click=1'
+        line: 'single_click=0'
+      when: not enable_single_click
+
+- name: Download and configure the vehicle code
+  hosts: vehicle_hosts
+  become: false
+  vars_files:
+    - vars/vars.yml
+  tasks:
+    - name: Get the latest version of the code from git
+      ansible.builtin.git:
+        repo: 'https://github.com/DylanGore-FYP/Car.git'
+        dest: ~/car
+        clone: yes
+        update: '{{ update_vehicle_code }}'
+        version: '{{ vehicle_code_version }}'
+    - name: Upload the vehicle config file
+      ansible.builtin.template:
+        src: templates/config.toml
+        dest: ~/car/config.toml
+    - name: Upload the start script
+      ansible.builtin.template:
+        src: templates/start.sh
+        dest: ~/start.sh
+    - name: Make ~/.start.sh executable
+      ansible.builtin.file:
+        dest: ~/start.sh
+        mode: a+x
+    - name: Upload the desktop shortcut
+      ansible.builtin.template:
+        src: templates/shortcut.desktop.j2
+        dest: ~/Desktop/vehicle.desktop
+    - name: Upload the desktop icon
+      ansible.builtin.template:
+        src: templates/fyp.xpm
+        dest: ~/fyp.xpm
+    # Disbled due to an issue with pipenv
+    # - name: Install the Python virtual environment using pipenv
+    #   ansible.builtin.shell:
+    #     cmd: pipenv install
+    #     chdir: ~/car
