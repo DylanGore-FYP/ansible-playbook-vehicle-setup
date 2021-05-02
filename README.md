@@ -43,6 +43,10 @@ Run the playbook using password authentication:
 ansible-playbook -i inventory playbook.yml --ask-pass
 ```
 
+## Commit Message Convention
+
+This project uses [Gitmoji](https://gitmoji.dev/) for commit organisation. For more details see the [Gitmoji Repository](https://github.com/carloscuesta/gitmoji).
+
 ## Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
@@ -59,3 +63,5 @@ ansible-playbook -i inventory playbook.yml --ask-pass
 <!-- prettier-ignore-end -->
 
 <!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.
